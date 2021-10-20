@@ -1,0 +1,85 @@
+#Locally Linear Embedding Model
+#Date:2021-10-20
+#Coder:Ruicq
+#State:Passed
+#References:
+#https://www.cnblogs.com/nuochengze/p/12538874.html
+#https://blog.csdn.net/weixin_43055882/article/details/86529411
+
+
+
+#导入需要的包
+from sklearn.manifold import LocallyLinearEmbedding
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.image import imread
+
+#生成数据集-星星散点，返回散点的x，y坐标
+def Draw_star(N):
+    starx_0 = np.array(np.random.rand(N,1))
+    stary_0 = 0.5 * np.ones(N)
+    starx_1 = starx_0
+    stary_1 = np.array(0.5 * starx_1)
+    starx_2 = np.array(0.5 * starx_0)
+    stary_2 = np.array(2 * starx_2)
+    starx_3 = np.array(0.5 + 0.5 * starx_0)
+    stary_3 = np.array(2 - 2 * starx_3)
+    starx_4 = starx_0
+    stary_4 = np.array(0.5 - 0.5 * starx_0)
+    starxx = np.append(starx_0, starx_1)
+    starxx = np.append(starxx, starx_2)
+    starxx = np.append(starxx, starx_3)
+    starxx = np.append(starxx, starx_4)
+    staryy = np.append(stary_0, stary_1)
+    staryy = np.append(staryy, stary_2)
+    staryy = np.append(staryy, stary_3)
+    staryy = np.append(staryy, stary_4)
+    plt.scatter(starxx, staryy, c='red', s=24)
+    plt.savefig('Redstar.jpg')
+    print('绘制出的五角星图像如下：')
+    plt.show()
+    return [starxx, staryy]
+
+#重构矩阵
+M = np.array(Draw_star(100)).T
+
+#M = [np.atleast_2d(x,y)]
+#将图像投影到曲面上：
+def make_S_curve(X):
+    t = (X[:, 0] - 0.25) * 0.75 * np.pi
+    x = np.sin(t)
+    y = X[:, 1]
+    z = np.sign(t)*(np.cos(t)-1)
+    return np.vstack((x,y,z)).T
+    
+XS = make_S_curve(M)
+    
+#绘制三维图像
+print('将图片投影到曲面上绘制出的三维图像如下：')
+ax = plt.axes(projection='3d')
+ax.scatter3D(XS[:,0], XS[:,1], XS[:,2], color='r')
+plt.savefig('Redstar_3D.jpg')
+
+
+
+#模型主要部分
+#模型参数说明：n_neighbors：搜索样本的近邻的个数,越大，降纬后的局部数据越好 n_components：降维到的维数
+#reg ：正则化系数，默认为0.001，一般不用管，当近邻数远远的大于降维到的维数时可以考虑适当增大这个参数
+#eigen_solver：特征分解的方法。有‘arpack’和‘dense’两者算法选择。当然也可以选择’auto’让scikit-learn自己选择一个合适的算法。
+#‘dense’一般适合于非稀疏的矩阵分解。而‘arpack’虽然可以适应稀疏和非稀疏的矩阵分解，但在稀疏矩阵分解时会有更好算法速度。
+#method： 即LLE的具体算法。LocallyLinearEmbedding支持4种LLE算法，分别是’standard’对应我们标准的LLE算法，'hessian’对应HLLE算法，
+#‘modified’对应原理篇讲到的MLLE算法，‘ltsa’对应原理篇讲到的LTSA算法。默认是’standard’。
+#HLLE/MLLE/LTSA算法在同样的近邻数n_neighbors情况下，运算时间更长，降维效果好一些。
+#使用MLLE要求n_neighbors > n_components，而使用HLLE要求n_neighbors > n_components * (n_components + 3) / 2
+#neighbors_algorithm：这个是k近邻的搜索方法。‘brute’对应第一种蛮力实现，‘kd_tree’对应第二种KD树实现，‘ball_tree’对应第三种的球树实现，
+#‘auto’则会在上面三种算法中做权衡，选择一个拟合最好的最优算法。
+
+#构建模型，其中参数根据训练情况进行调整即可
+my_model = LocallyLinearEmbedding(n_neighbors = 100, n_components = 2, method = 'standard', eigen_solver = 'auto')
+#训练模型并输出
+my_model_out = my_model.fit_transform(XS)
+#绘制散点图
+plt.scatter(my_model_out[:, 0], my_model_out[:, 1])
+plt.savefig('Redstar_3D_restored.jpg')
+#绘制图形
+plt.show()
