@@ -1,3 +1,11 @@
+#Linear Regression
+#Date:2021-10-20
+#Coder:Ruicq
+#State:Passed
+#References:
+#《机器学习实战：基于SciKit-Learn、Keras和TensorFlow（第二版）》
+
+
 #导入需要的包
 import numpy as np
 import matplotlib.pyplot as plt
