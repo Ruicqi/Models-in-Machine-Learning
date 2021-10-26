@@ -1,0 +1,61 @@
+#LSTM Model
+#Date:2021-10-26
+#Coder:Ruicq
+#State:Passed
+#References:
+
+#导入需要的包
+import numpy as np
+
+#设定值,batch_size为每次训练的数据量
+batch_size = 5
+
+
+#导入歌词文件
+with open('lemontree_lyrics.txt') as f:
+    ly = f.read()
+ly = ly.replace('\n', ' ').replace('\r', ' ')
+#生成训练集
+ly_train = list(ly)
+print(ly)
+
+#去除重复的字母与符号
+char_idx = set(list(ly))
+#得到不重复的字母与符号的索引值
+char_idx = dict([(char, i) for i, char in enumerate(ly)])
+print(char_idx)
+
+#将训练集由字符转换为索引列表
+ly_train_idx = [char_idx[i] for i in ly_train]
+#相邻采样函数，用于生成训练集
+def Sampling_func(ly_train, batch_size):
+    ly_train = np.array(ly_train)
+    data_len = len(ly_train)
+    batch_len = data_len
+    train_matrix = np.zeros((batch_size, (len(ly_train) - batch_size + 1))).T
+#将数据集赋值给train_matrix，train_matrix的每一行为一次训练所需数据
+    for i in range(len(ly_train) - batch_size + 1):
+        train_matrix[i] = ly_train[i : i + batch_size]
+#返回训练用的数据，为一二维矩阵，内容是字母与符号的索引值。
+    print('训练集大小为：', train_matrix.shape)
+    return train_matrix
+    
+ly_train_matrix = Sampling_func(ly_train_idx, batch_size)
+
+#用于将索引返回回歌词，idx_series为导入的待转换序列，char_idx为导入的索引字典
+def Back_to_letters(idx_series, char_idx):
+    letters = []
+#将idx_series展开为一维序列
+    idx_series = np.array(idx_series).flatten()
+#遍历索引字典，将字典的值转换为索引并保存在序列letters中
+    for i in idx_series:       
+        for key in char_idx:
+            if char_idx[key] == i:
+                letters.append(key)
+#将得到的一维序列转换为字符串并返回
+    return ' '.join(letters)
+
+#测试函数
+#print(Back_to_letters(ly_train_matrix, char_idx))
+
+#--------------以上为数据集生成部分-------------------
